@@ -1,0 +1,98 @@
+ #include("/common/include/include.html")
+<div class="admin-main">
+	<div style="top: 0px;">
+		<fieldset class="layui-elem-field layui-field-title"
+			style="margin-top: 20px;">
+			<legend>用户角色绑定</legend>
+		</fieldset>
+		<table class="site-table table-hover" lay-even>
+			<thead>
+				<tr>
+					<th style="width: 12px; padding-left: 15px;"><input
+						type="checkbox" id="selected-all"></th>
+					<th>角色标识</th>
+					<th>角色名称</th>
+					<th>角色描述</th>
+				</tr>
+			</thead>
+			<tbody id="tableBody"></tbody>
+		</table>
+		<div id="pages" class="pages"></div>
+		<div class="selecterBtnDiv">
+			<a href="javascript:;" class="layui-btn layui-btn-small"
+				onclick="selectOneOperate()"> <i class="layui-icon">&#xe608;</i>
+				确定
+			</a>
+		</div>
+	</div>
+
+</div>
+
+<!--模板-->
+<script type="text/html" id="conTemp">
+                {{# layui.each(d.data, function(index, item){ }}
+                    <tr>
+                        <td><input type="checkbox" class="icheckbox_flat-green" value="{{ item.id?item.id:"" }}"></td>
+                        <td>{{ item.key?item.key:"" }}</td>
+                        <td>{{ item.name?item.name:"" }}</td>
+                        <td>{{ item.description?item.description:"" }}</td>
+                    </tr>
+                {{# }); }}
+        </script>
+<script>
+	var id = '#(id)';//用户id
+	layui.config({
+		base : ctx + '/common/js/'
+	}).use([ 'tree', 'ajax', 'paging' ], function() {
+		ajax = layui.ajax;
+		tree = layui.tree;
+		paging = layui.paging();
+		refresh();
+	});
+	function refresh() {
+		getPageData("");
+	}
+	function getPageData(pid) {
+		paging.init({
+			url : ctx + "/admin/role/listData", //地址
+			elem : '#tableBody',
+			tempElem : '#conTemp', //模块容器
+			pageConfig : { //分页参数配置
+				elem : '#pages', //分页容器
+				pageSize : 20, //分页大小
+				pid : pid
+			},
+			success : function() { //渲染成功的回调
+				//alert('渲染成功');
+			},
+			fail : function(msg) { //获取数据失败的回调
+				//alert('获取数据失败')
+			},
+			complate : function() { //完成的回调
+				//alert('处理完成');
+			}
+		});
+	}
+	//选择一个功能
+	function selectOneOperate() {
+		var p = $("div.icheckbox_flat-green.checked");
+		var length = p.length;
+		if (!length && length <= 0) {
+			parent.layer.alert("请选择要绑定的角色!");
+			return;
+		}
+		if (length > 1) {
+			parent.layer.alert("请选择一行!");
+			return;
+		}
+		var data = {};
+		data.uid = id;
+		data.roleid = p.find("input").val();
+		var r = ajax.ajaxFunc(ctx + "/admin/user/addRoleToUser", data,
+				"json", null);
+		if (r.success) {
+			parent.layer.closeAll();
+			parent.layer.alert(r.message);
+		}
+	}
+</script>
